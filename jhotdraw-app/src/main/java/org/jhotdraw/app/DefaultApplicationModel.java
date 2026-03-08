@@ -84,8 +84,16 @@ public class DefaultApplicationModel
         m.put(SaveFileAction.ID, new SaveFileAction(a, v));
         m.put(SaveFileAsAction.ID, new SaveFileAsAction(a, v));
         m.put(CloseFileAction.ID, new CloseFileAction(a, v));
-        m.put(UndoAction.ID, new UndoAction(a, v));
-        m.put(RedoAction.ID, new RedoAction(a, v));
+        // Preserve the view's own undo/redo actions if already registered
+        // (e.g., by DrawView.initActions() which wires UndoRedoManager's inner actions).
+        // Creating new wrapper UndoAction/RedoAction here would overwrite
+        // the real actions, breaking the delegation chain.
+        if (v == null || v.getActionMap().get(UndoAction.ID) == null) {
+            m.put(UndoAction.ID, new UndoAction(a, v));
+        }
+        if (v == null || v.getActionMap().get(RedoAction.ID) == null) {
+            m.put(RedoAction.ID, new RedoAction(a, v));
+        }
         m.put(CutAction.ID, new CutAction());
         m.put(CopyAction.ID, new CopyAction());
         m.put(PasteAction.ID, new PasteAction());
