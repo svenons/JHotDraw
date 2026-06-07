@@ -68,9 +68,26 @@ public class DrawView extends AbstractView {
      */
     public DrawView() {
         initComponents();
+        initScrollPane();
+        setEditor(new DefaultDrawingEditor());
+        initUndoManager();
+        initPlacardPanel();
+    }
+
+    /**
+     * Configures the scroll pane layout and border.
+     */
+    private void initScrollPane() {
         scrollPane.setLayout(new PlacardScrollPaneLayout());
         scrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
-        setEditor(new DefaultDrawingEditor());
+    }
+
+    /**
+     * Creates and wires the UndoRedoManager: registers it as a listener
+     * on the drawing, populates the view's ActionMap with undo/redo actions,
+     * and tracks unsaved changes via the manager's property events.
+     */
+    private void initUndoManager() {
         undo = new UndoRedoManager();
         view.setDrawing(createDrawing());
         view.getDrawing().addUndoableEditListener(undo);
@@ -81,21 +98,34 @@ public class DrawView extends AbstractView {
                 setHasUnsavedChanges(undo.hasSignificantEdits());
             }
         });
+    }
+
+    /**
+     * Creates and adds the zoom and grid-toggle buttons to the scroll pane's
+     * lower-left corner placard.
+     */
+    private void initPlacardPanel() {
         ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
         JPanel placardPanel = new JPanel(new BorderLayout());
-        javax.swing.AbstractButton pButton;
-        pButton = ButtonFactory.createZoomButton(view);
-        pButton.putClientProperty("Quaqua.Button.style", "placard");
-        pButton.putClientProperty("Quaqua.Component.visualMargin", new Insets(0, 0, 0, 0));
-        pButton.setFont(UIManager.getFont("SmallSystemFont"));
-        placardPanel.add(pButton, BorderLayout.WEST);
-        pButton = ButtonFactory.createToggleGridButton(view);
-        pButton.putClientProperty("Quaqua.Button.style", "placard");
-        pButton.putClientProperty("Quaqua.Component.visualMargin", new Insets(0, 0, 0, 0));
-        pButton.setFont(UIManager.getFont("SmallSystemFont"));
-        labels.configureToolBarButton(pButton, "view.toggleGrid.placard");
-        placardPanel.add(pButton, BorderLayout.EAST);
+
+        AbstractButton zoomButton = configurePlacardButton(ButtonFactory.createZoomButton(view));
+        placardPanel.add(zoomButton, BorderLayout.WEST);
+
+        AbstractButton gridButton = configurePlacardButton(ButtonFactory.createToggleGridButton(view));
+        labels.configureToolBarButton(gridButton, "view.toggleGrid.placard");
+        placardPanel.add(gridButton, BorderLayout.EAST);
+
         scrollPane.add(placardPanel, JScrollPane.LOWER_LEFT_CORNER);
+    }
+
+    /**
+     * Applies standard placard styling to a button.
+     */
+    private AbstractButton configurePlacardButton(AbstractButton button) {
+        button.putClientProperty("Quaqua.Button.style", "placard");
+        button.putClientProperty("Quaqua.Component.visualMargin", new Insets(0, 0, 0, 0));
+        button.setFont(UIManager.getFont("SmallSystemFont"));
+        return button;
     }
 
     /**

@@ -10,43 +10,43 @@ package org.jhotdraw.undo;
 import java.awt.event.*;
 import java.beans.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.undo.*;
 import org.jhotdraw.util.*;
 
 /**
- * Same as javax.swing.UndoManager but provides actions for undo and
- * redo operations.
+ * Extends {@link javax.swing.undo.UndoManager} with property change support,
+ * a "has significant edits" flag, and inner undo/redo actions suitable for
+ * direct use in menus and ActionMaps.
  *
  * @author Werner Randelshofer
  * @version $Id$
  */
-public class UndoRedoManager extends UndoManager { //javax.swing.undo.UndoManager {
+public class UndoRedoManager extends UndoManager {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger LOG = Logger.getLogger(UndoRedoManager.class.getName());
+
+    /** Property name fired when the "has significant edits" flag changes. */
+    public static final String HAS_SIGNIFICANT_EDITS_PROPERTY = "hasSignificantEdits";
+
     protected PropertyChangeSupport propertySupport = new PropertyChangeSupport(this);
     private static final boolean DEBUG = false;
-    /**
-     * The resource bundle used for internationalisation.
-     */
+
     private static ResourceBundleUtil labels;
-    /**
-     * This flag is set to true when at
-     * least one significant UndoableEdit
-     * has been added to the manager since the
-     * last call to discardAllEdits.
-     */
+
     private boolean hasSignificantEdits = false;
+
     /**
-     * This flag is set to true when an undo or redo
-     * operation is in progress. The UndoRedoManager
-     * ignores all incoming UndoableEdit events while
-     * this flag is true.
+     * Flag set during undo/redo operations. While true, incoming edits
+     * are discarded to prevent re-entrant modifications corrupting the stack.
      */
     private boolean undoOrRedoInProgress;
+
     /**
-     * Sending this UndoableEdit event to the UndoRedoManager
-     * disables the Undo and Redo functions of the manager.
+     * Sentinel edit that disables undo and redo when added to the manager.
      */
     public static final UndoableEdit DISCARD_ALL_EDITS = new AbstractUndoableEdit() {
         private static final long serialVersionUID = 1L;
@@ -63,10 +63,9 @@ public class UndoRedoManager extends UndoManager { //javax.swing.undo.UndoManage
     };
 
     /**
-     * Undo Action for use in a menu bar.
+     * Inner undo action for use in a menu bar.
      */
-    private class UndoAction
-            extends AbstractAction {
+    private class UndoAction extends AbstractAction {
 
         private static final long serialVersionUID = 1L;
 
@@ -75,25 +74,20 @@ public class UndoRedoManager extends UndoManager { //javax.swing.undo.UndoManage
             setEnabled(false);
         }
 
-        /**
-         * Invoked when an action occurs.
-         */
         @Override
         public void actionPerformed(ActionEvent evt) {
             try {
                 undo();
             } catch (CannotUndoException e) {
-                System.err.println("Cannot undo: " + e);
-                e.printStackTrace();
+                LOG.log(Level.WARNING, "Cannot undo", e);
             }
         }
     }
 
     /**
-     * Redo Action for use in a menu bar.
+     * Inner redo action for use in a menu bar.
      */
-    private class RedoAction
-            extends AbstractAction {
+    private class RedoAction extends AbstractAction {
 
         private static final long serialVersionUID = 1L;
 
@@ -102,25 +96,17 @@ public class UndoRedoManager extends UndoManager { //javax.swing.undo.UndoManage
             setEnabled(false);
         }
 
-        /**
-         * Invoked when an action occurs.
-         */
         @Override
         public void actionPerformed(ActionEvent evt) {
             try {
                 redo();
             } catch (CannotRedoException e) {
-                System.out.println("Cannot redo: " + e);
+                LOG.log(Level.WARNING, "Cannot redo", e);
             }
         }
     }
-    /**
-     * The undo action instance.
-     */
+
     private UndoAction undoAction;
-    /**
-     * The redo action instance.
-     */
     private RedoAction redoAction;
 
     public static ResourceBundleUtil getLabels() {
@@ -130,9 +116,6 @@ public class UndoRedoManager extends UndoManager { //javax.swing.undo.UndoManage
         return labels;
     }
 
-    /**
-     * Creates new UndoRedoManager
-     */
     public UndoRedoManager() {
         getLabels();
         undoAction = new UndoAction();
@@ -143,9 +126,6 @@ public class UndoRedoManager extends UndoManager { //javax.swing.undo.UndoManage
         labels = ResourceBundleUtil.getBundle("org.jhotdraw.undo.Labels", l);
     }
 
-    /**
-     * Discards all edits.
-     */
     @Override
     public void discardAllEdits() {
         super.discardAllEdits();
@@ -156,39 +136,18 @@ public class UndoRedoManager extends UndoManager { //javax.swing.undo.UndoManage
     public void setHasSignificantEdits(boolean newValue) {
         boolean oldValue = hasSignificantEdits;
         hasSignificantEdits = newValue;
-        firePropertyChange("hasSignificantEdits", oldValue, newValue);
+        firePropertyChange(HAS_SIGNIFICANT_EDITS_PROPERTY, oldValue, newValue);
     }
 
-    /**
-     * Returns true if at least one significant UndoableEdit
-     * has been added since the last call to discardAllEdits.
-     */
     public boolean hasSignificantEdits() {
         return hasSignificantEdits;
     }
 
-    /**
-     * If inProgress, inserts anEdit at indexOfNextAdd, and removes
-     * any old edits that were at indexOfNextAdd or later. The die
-     * method is called on each edit that is removed is sent, in the
-     * reverse of the order the edits were added. Updates
-     * indexOfNextAdd.
-     *
-     * <p>
-     * If not inProgress, acts as a CompoundEdit</p>
-     *
-     * <p>
-     * Regardless of inProgress, if undoOrRedoInProgress,
-     * calls die on each edit that is sent.</p>
-     *
-     *
-     * @see CompoundEdit#end
-     * @see CompoundEdit#addEdit
-     */
     @Override
     public boolean addEdit(UndoableEdit anEdit) {
         if (DEBUG) {
-            System.out.println("UndoRedoManager@" + hashCode() + ".add " + anEdit);
+            LOG.log(Level.FINE, "UndoRedoManager@{0}.add {1}",
+                    new Object[]{hashCode(), anEdit});
         }
         if (undoOrRedoInProgress) {
             anEdit.die();
@@ -202,100 +161,65 @@ public class UndoRedoManager extends UndoManager { //javax.swing.undo.UndoManage
         return success;
     }
 
-    /**
-     * Gets the undo action for use as an Undo menu item.
-     */
     public Action getUndoAction() {
         return undoAction;
     }
 
-    /**
-     * Gets the redo action for use as a Redo menu item.
-     */
     public Action getRedoAction() {
         return redoAction;
     }
 
     /**
-     * Updates the properties of the UndoAction
-     * and of the RedoAction.
+     * Updates the enabled state and presentation names of the undo and redo actions.
      */
     private void updateActions() {
-        String label;
         if (DEBUG) {
-            System.out.println("UndoRedoManager@" + hashCode() + ".updateActions "
-                    + editToBeUndone()
-                    + " canUndo=" + canUndo() + " canRedo=" + canRedo());
+            LOG.log(Level.FINE, "UndoRedoManager@{0}.updateActions editToBeUndone={1} canUndo={2} canRedo={3}",
+                    new Object[]{hashCode(), editToBeUndone(), canUndo(), canRedo()});
         }
-        if (canUndo()) {
-            undoAction.setEnabled(true);
-            label = getUndoPresentationName();
-        } else {
-            undoAction.setEnabled(false);
-            label = labels.getString("edit.undo.text");
-        }
-        undoAction.putValue(Action.NAME, label);
-        undoAction.putValue(Action.SHORT_DESCRIPTION, label);
-        if (canRedo()) {
-            redoAction.setEnabled(true);
-            label = getRedoPresentationName();
-        } else {
-            redoAction.setEnabled(false);
-            label = labels.getString("edit.redo.text");
-        }
-        redoAction.putValue(Action.NAME, label);
-        redoAction.putValue(Action.SHORT_DESCRIPTION, label);
+        updateAction(undoAction, canUndo(), getUndoPresentationName(), "edit.undo.text");
+        updateAction(redoAction, canRedo(), getRedoPresentationName(), "edit.redo.text");
     }
 
     /**
-     * Undoes the last edit event.
-     * The UndoRedoManager ignores all incoming UndoableEdit events,
-     * while undo is in progress.
+     * Updates a single action's enabled state and display label.
      */
-    @Override
-    public void undo()
-            throws CannotUndoException {
+    private void updateAction(AbstractAction action, boolean canPerform,
+                              String presentationName, String defaultLabelKey) {
+        action.setEnabled(canPerform);
+        String label = canPerform ? presentationName : labels.getString(defaultLabelKey);
+        action.putValue(Action.NAME, label);
+        action.putValue(Action.SHORT_DESCRIPTION, label);
+    }
+
+    /**
+     * Executes an undo or redo operation with the progress flag set,
+     * ensuring incoming edits are discarded during the operation and
+     * actions are updated afterward.
+     */
+    private void executeWithProgressFlag(Runnable operation) {
         undoOrRedoInProgress = true;
         try {
-            super.undo();
+            operation.run();
         } finally {
             undoOrRedoInProgress = false;
             updateActions();
         }
     }
 
-    /**
-     * Redoes the last undone edit event.
-     * The UndoRedoManager ignores all incoming UndoableEdit events,
-     * while redo is in progress.
-     */
     @Override
-    public void redo()
-            throws CannotUndoException {
-        undoOrRedoInProgress = true;
-        try {
-            super.redo();
-        } finally {
-            undoOrRedoInProgress = false;
-            updateActions();
-        }
+    public void undo() throws CannotUndoException {
+        executeWithProgressFlag(super::undo);
     }
 
-    /**
-     * Undoes or redoes the last edit event.
-     * The UndoRedoManager ignores all incoming UndoableEdit events,
-     * while undo or redo is in progress.
-     */
     @Override
-    public void undoOrRedo()
-            throws CannotUndoException, CannotRedoException {
-        undoOrRedoInProgress = true;
-        try {
-            super.undoOrRedo();
-        } finally {
-            undoOrRedoInProgress = false;
-            updateActions();
-        }
+    public void redo() throws CannotUndoException {
+        executeWithProgressFlag(super::redo);
+    }
+
+    @Override
+    public void undoOrRedo() throws CannotUndoException, CannotRedoException {
+        executeWithProgressFlag(super::undoOrRedo);
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
