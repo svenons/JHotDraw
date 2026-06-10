@@ -73,6 +73,10 @@
 					</dependency>
 				</dependencies>
 				<configuration>
+					<!-- All tests in this module are JUnit/JGiven (the legacy AbstractFigureNGTest
+					     was migrated from TestNG to JUnit 4), so the junit47 provider runs every
+					     suite. The *NGTest.java include is kept so the migrated file is still picked
+					     up by its original name. argLine opens java.lang for JGiven on JDK 16+. -->
 					<includes>
 						<include>**/*Test.java</include>
 						<include>**/*NGTest.java</include>

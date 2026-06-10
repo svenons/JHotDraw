@@ -8,8 +8,11 @@
 package org.jhotdraw.draw.action;
 
 import org.jhotdraw.draw.figure.Figure;
-import java.util.*;
-import org.jhotdraw.draw.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import org.jhotdraw.draw.Drawing;
+import org.jhotdraw.draw.DrawingEditor;
+import org.jhotdraw.draw.DrawingView;
 import org.jhotdraw.util.ResourceBundleUtil;
 
 /**

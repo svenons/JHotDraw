@@ -24,14 +24,17 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Map;
 import org.jhotdraw.draw.AttributeKey;
-import static org.testng.Assert.*;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import static org.junit.Assert.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
+ * Migrated from TestNG to JUnit 4 (behavior-preserving) so it runs under this module's
+ * surefire-junit47 provider alongside the JUnit/JGiven suites. The file keeps its original
+ * {@code *NGTest} name for traceability.
  *
  * @author tw
  */
@@ -48,15 +51,15 @@ public class AbstractFigureNGTest {
     public static void tearDownClass() throws Exception {
     }
 
-    @BeforeMethod
+    @Before
     public void setUpMethod() throws Exception {
     }
 
-    @AfterMethod
+    @After
     public void tearDownMethod() throws Exception {
     }
 
-    @Test(expectedExceptions = IllegalStateException.class)
+    @Test(expected = IllegalStateException.class)
     public void testChangedWithoutWillChange() {
         new AbstractFigureImpl().changed();
     }
@@ -64,15 +67,15 @@ public class AbstractFigureNGTest {
     @Test
     public void testWillChangeChangedEvents() {
         AbstractFigure figure = new AbstractFigureImpl();
-        assertEquals(figure.getChangingDepth(), 0);
+        assertEquals(0, figure.getChangingDepth());
         figure.willChange();
-        assertEquals(figure.getChangingDepth(), 1);
+        assertEquals(1, figure.getChangingDepth());
         figure.willChange();
-        assertEquals(figure.getChangingDepth(), 2);
+        assertEquals(2, figure.getChangingDepth());
         figure.changed();
-        assertEquals(figure.getChangingDepth(), 1);
+        assertEquals(1, figure.getChangingDepth());
         figure.changed();
-        assertEquals(figure.getChangingDepth(), 0);
+        assertEquals(0, figure.getChangingDepth());
     }
 
     public class AbstractFigureImpl extends AbstractFigure {
