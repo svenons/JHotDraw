@@ -8,11 +8,13 @@ import static org.junit.Assert.*;
 public class GroupFigureTest {
     private GroupFigure groupFigure;
     private Figure testChild;
+    private Figure testChild2;
 
     @Before
     public void setUp() {
         groupFigure = new GroupFigure();
         testChild = new RectangleFigure();
+        testChild2 = new TextFigure();
     }
 
     @Test
@@ -21,6 +23,16 @@ public class GroupFigureTest {
 
         assertEquals("The group should contain exactly 1 child", 1, groupFigure.getChildCount());
         assertTrue("Group should successfully contain the specific testChild", groupFigure.getChildren().contains(testChild));
+    }
+
+    @Test
+    public void testGroupDifferentFigureTypes() {
+        groupFigure.basicAdd(testChild);
+        groupFigure.basicAdd(testChild2);
+
+        assertEquals("Group should hold exactly 2 children", 2, groupFigure.getChildCount());
+        assertTrue("Group must contain the rectangle figure", groupFigure.getChildren().contains(testChild));
+        assertTrue("Group must contain the text figure", groupFigure.getChildren().contains(testChild2));
     }
 
     @Test
@@ -56,5 +68,21 @@ public class GroupFigureTest {
         clonedGroup.basicRemoveAllChildren();
         assertEquals("Original group should retain its children after clone is cleared", 1, groupFigure.getChildCount());
         assertEquals("Cloned group should be empty", 0, clonedGroup.getChildCount());
+    }
+
+    @Test
+    public void testNestedGrouping() {
+        GroupFigure innerGroup = new GroupFigure();
+        innerGroup.basicAdd(testChild);
+        
+        GroupFigure outerGroup = new GroupFigure();
+        
+        outerGroup.basicAdd(innerGroup);
+        
+        assertEquals("Outer group should contain exactly 1 child (the inner group)", 1, outerGroup.getChildCount());
+        assertTrue("Outer group must contain the inner group", outerGroup.getChildren().contains(innerGroup));
+        
+        GroupFigure retrievedInnerGroup = (GroupFigure) outerGroup.getChildren().iterator().next();
+        assertTrue("Inner group must still contain the original shape", retrievedInnerGroup.getChildren().contains(testChild));
     }
 }
