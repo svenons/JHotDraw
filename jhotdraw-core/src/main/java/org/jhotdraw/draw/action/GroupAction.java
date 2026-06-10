@@ -152,6 +152,8 @@ public class GroupAction extends AbstractSelectedAction {
     }
 
     public void groupFigures(DrawingView view, CompositeFigure group, Collection<Figure> figures) {
+        assert figures != null && figures.size() > 1 : "Fatal Invariant Violation: groupFigures called with insufficient figures.";
+
         Collection<Figure> sorted = view.getDrawing().sort(figures);
         int index = view.getDrawing().indexOf(sorted.iterator().next());
         view.getDrawing().basicRemoveAll(figures);
