@@ -25,6 +25,7 @@ public class GroupAction extends AbstractSelectedAction {
 
     private static final long serialVersionUID = 1L;
     public static final String ID = "edit.groupSelection";
+    private static final String LABELS_RESOURCE = "org.jhotdraw.draw.Labels";
     private CompositeFigure prototype;
     /**
      * If this variable is true, this action groups figures.
@@ -48,7 +49,7 @@ public class GroupAction extends AbstractSelectedAction {
         this.prototype = prototype;
         this.isGroupingAction = isGroupingAction;
         ResourceBundleUtil labels
-                = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+                = ResourceBundleUtil.getBundle(LABELS_RESOURCE);
         labels.configureAction(this, ID);
         updateEnabledState();
     }
@@ -87,7 +88,7 @@ public class GroupAction extends AbstractSelectedAction {
                     @Override
                     public String getPresentationName() {
                         ResourceBundleUtil labels
-                                = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+                                = ResourceBundleUtil.getBundle(LABELS_RESOURCE);
                         return labels.getString("edit.groupSelection.text");
                     }
 
@@ -101,11 +102,6 @@ public class GroupAction extends AbstractSelectedAction {
                     public void undo() throws CannotUndoException {
                         ungroupFigures(view, group);
                         super.undo();
-                    }
-
-                    @Override
-                    public boolean addEdit(UndoableEdit anEdit) {
-                        return super.addEdit(anEdit);
                     }
                 };
                 groupFigures(view, group, ungroupedFigures);
@@ -122,7 +118,7 @@ public class GroupAction extends AbstractSelectedAction {
                     @Override
                     public String getPresentationName() {
                         ResourceBundleUtil labels
-                                = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+                                = ResourceBundleUtil.getBundle(LABELS_RESOURCE);
                         return labels.getString("edit.ungroupSelection.text");
                     }
 

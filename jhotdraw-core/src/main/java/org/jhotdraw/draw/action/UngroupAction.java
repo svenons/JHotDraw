@@ -25,11 +25,6 @@ public class UngroupAction extends GroupAction {
     /**
      * Creates a new instance.
      */
-    private CompositeFigure prototype;
-
-    /**
-     * Creates a new instance.
-     */
     public UngroupAction(DrawingEditor editor) {
         super(editor, new GroupFigure(), false);
         ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
