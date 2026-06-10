@@ -9,9 +9,7 @@ package org.jhotdraw.draw.action;
 
 import org.jhotdraw.draw.figure.Figure;
 import java.util.*;
-import javax.swing.undo.*;
 import org.jhotdraw.draw.*;
-import org.jhotdraw.util.ResourceBundleUtil;
 
 /**
  * SendToBackAction.
@@ -19,7 +17,7 @@ import org.jhotdraw.util.ResourceBundleUtil;
  * @author Werner Randelshofer
  * @version $Id$
  */
-public class SendToBackAction extends AbstractSelectedAction {
+public class SendToBackAction extends AbstractZOrderAction {
 
     private static final long serialVersionUID = 1L;
     public static final String ID = "edit.sendToBack";
@@ -28,40 +26,17 @@ public class SendToBackAction extends AbstractSelectedAction {
      * Creates a new instance.
      */
     public SendToBackAction(DrawingEditor editor) {
-        super(editor);
-        ResourceBundleUtil labels
-                = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
-        labels.configureAction(this, ID);
-        updateEnabledState();
+        super(editor, ID);
     }
 
     @Override
-    public void actionPerformed(java.awt.event.ActionEvent e) {
-        final DrawingView view = getView();
-        final LinkedList<Figure> figures = new LinkedList<>(view.getSelectedFigures());
+    protected void reorder(DrawingView view, Collection<Figure> figures) {
         sendToBack(view, figures);
-        fireUndoableEditHappened(new AbstractUndoableEdit() {
-            private static final long serialVersionUID = 1L;
+    }
 
-            @Override
-            public String getPresentationName() {
-                ResourceBundleUtil labels
-                        = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
-                return labels.getTextProperty(ID);
-            }
-
-            @Override
-            public void redo() throws CannotRedoException {
-                super.redo();
-                SendToBackAction.sendToBack(view, figures);
-            }
-
-            @Override
-            public void undo() throws CannotUndoException {
-                super.undo();
-                BringToFrontAction.bringToFront(view, figures);
-            }
-        });
+    @Override
+    protected void reverseReorder(DrawingView view, Collection<Figure> figures) {
+        BringToFrontAction.bringToFront(view, figures);
     }
 
     public static void sendToBack(DrawingView view, Collection<Figure> figures) {
