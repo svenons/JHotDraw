@@ -10,6 +10,7 @@ package org.jhotdraw.draw.action;
 import org.jhotdraw.draw.figure.Figure;
 import java.util.*;
 import org.jhotdraw.draw.*;
+import org.jhotdraw.util.ReversedList;
 
 /**
  * SendToBackAction.
@@ -41,7 +42,8 @@ public class SendToBackAction extends AbstractZOrderAction {
 
     public static void sendToBack(DrawingView view, Collection<Figure> figures) {
         Drawing drawing = view.getDrawing();
-        for (Figure figure : figures) { // XXX Shouldn't the figures be sorted here back to front?
+        List<Figure> sorted = drawing.sort(figures);
+        for (Figure figure : new ReversedList<>(sorted)) {
             drawing.sendToBack(figure);
         }
     }
