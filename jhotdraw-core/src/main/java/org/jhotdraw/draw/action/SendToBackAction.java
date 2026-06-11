@@ -41,7 +41,11 @@ public class SendToBackAction extends AbstractZOrderAction {
     }
 
     public static void sendToBack(DrawingView view, Collection<Figure> figures) {
-        Drawing drawing = view.getDrawing();
+        Objects.requireNonNull(view, "DrawingView must not be null.");
+        Objects.requireNonNull(figures, "Figures collection must not be null.");
+        Drawing drawing = Objects.requireNonNull(
+                view.getDrawing(),
+                "DrawingView must provide a drawing.");
         List<Figure> sorted = drawing.sort(figures);
         for (Figure figure : new ReversedList<>(sorted)) {
             drawing.sendToBack(figure);

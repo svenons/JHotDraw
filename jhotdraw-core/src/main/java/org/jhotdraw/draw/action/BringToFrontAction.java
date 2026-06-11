@@ -40,7 +40,11 @@ public class BringToFrontAction extends AbstractZOrderAction {
     }
 
     public static void bringToFront(DrawingView view, Collection<Figure> figures) {
-        Drawing drawing = view.getDrawing();
+        Objects.requireNonNull(view, "DrawingView must not be null.");
+        Objects.requireNonNull(figures, "Figures collection must not be null.");
+        Drawing drawing = Objects.requireNonNull(
+                view.getDrawing(),
+                "DrawingView must provide a drawing.");
         for (Figure figure : drawing.sort(figures)) {
             drawing.bringToFront(figure);
         }
