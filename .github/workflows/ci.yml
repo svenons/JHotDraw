@@ -1,10 +1,13 @@
 name: Java CI with Maven
 
 on:
+  push:
+    branches: [ 
+      "feature/group-ungroup"
+    ]
   pull_request:
     branches: [ 
-      "develop",
-      "feature/group-ungroup"
+      "develop"
     ]
 
 jobs:
