@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import java.awt.geom.Point2D;
 
 public class GroupFigureTest {
     private GroupFigure groupFigure;
@@ -76,7 +77,6 @@ public class GroupFigureTest {
         innerGroup.basicAdd(testChild);
         
         GroupFigure outerGroup = new GroupFigure();
-        
         outerGroup.basicAdd(innerGroup);
         
         assertEquals("Outer group should contain exactly 1 child (the inner group)", 1, outerGroup.getChildCount());
@@ -84,5 +84,25 @@ public class GroupFigureTest {
         
         GroupFigure retrievedInnerGroup = (GroupFigure) outerGroup.getChildren().iterator().next();
         assertTrue("Inner group must still contain the original shape", retrievedInnerGroup.getChildren().contains(testChild));
+    }
+
+    @Test
+    public void testChopMethodCalculatesGeometricIntersection() {
+        RectangleFigure rect1 = new RectangleFigure();
+        rect1.setBounds(new Point2D.Double(0, 0), new Point2D.Double(10, 10));
+
+        RectangleFigure rect2 = new RectangleFigure();
+        rect2.setBounds(new Point2D.Double(100, 100), new Point2D.Double(110, 110));
+
+        groupFigure.basicAdd(rect1);
+        groupFigure.basicAdd(rect2);
+
+        Point2D.Double fromPoint = new Point2D.Double(500, 500);
+
+        Point2D.Double result = groupFigure.chop(fromPoint);
+
+        assertNotNull("Chop should return a valid mathematical intersection point", result);
+
+        assertTrue("Chop should snap to the closest child geometry", result.x > 50);
     }
 }
