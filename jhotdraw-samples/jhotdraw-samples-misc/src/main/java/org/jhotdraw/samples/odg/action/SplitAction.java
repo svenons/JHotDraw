@@ -37,11 +37,15 @@ public class SplitAction extends UngroupAction {
     }
 
     @Override
-    protected boolean canUngroup() {
-        if (super.canUngroup()) {
-            return ((CompositeFigure) getView().getSelectedFigures().iterator().next()).getChildCount() > 1;
+    protected void updateEnabledState() {
+        super.updateEnabledState(); 
+        
+        if (isEnabled()) {
+            CompositeFigure group = (CompositeFigure) getView().getSelectedFigures().iterator().next();
+            if (group.getChildCount() <= 1) {
+                setEnabled(false);
+            }
         }
-        return false;
     }
 
     @SuppressWarnings("unchecked")
@@ -64,27 +68,5 @@ public class SplitAction extends UngroupAction {
         view.getDrawing().remove(group);
         view.addToSelection(paths);
         return figures;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void groupFigures(DrawingView view, CompositeFigure group, Collection<Figure> figures) {
-        Collection<Figure> sorted = view.getDrawing().sort(figures);
-        view.getDrawing().basicRemoveAll(figures);
-        view.clearSelection();
-        view.getDrawing().add(group);
-        group.willChange();
-        ((ODGPathFigure) group).removeAllChildren();
-        for (Map.Entry<AttributeKey<?>, Object> entry : figures.iterator().next().getAttributes().entrySet()) {
-            group.set((AttributeKey<Object>) entry.getKey(), entry.getValue());
-        }
-        for (Figure f : sorted) {
-            ODGPathFigure path = (ODGPathFigure) f;
-            for (Figure child : path.getChildren()) {
-                group.basicAdd(child);
-            }
-        }
-        group.changed();
-        view.addToSelection(group);
     }
 }
