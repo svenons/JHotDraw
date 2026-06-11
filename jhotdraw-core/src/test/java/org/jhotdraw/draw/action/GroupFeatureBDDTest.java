@@ -4,19 +4,13 @@ import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.ExpectedScenarioState;
 import com.tngtech.jgiven.annotation.ProvidedScenarioState;
 import com.tngtech.jgiven.junit.ScenarioTest;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.Test;
-
 import org.mockito.Mockito;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import org.jhotdraw.draw.DrawingEditor;
-import org.jhotdraw.draw.DrawingView;
-import org.jhotdraw.draw.Drawing;
+import org.jhotdraw.draw.*;
 import org.jhotdraw.draw.figure.Figure;
 import org.jhotdraw.draw.figure.GroupFigure;
 import org.jhotdraw.draw.figure.RectangleFigure;
@@ -65,13 +59,11 @@ public class GroupFeatureBDDTest extends ScenarioTest<
         @ExpectedScenarioState DrawingView mockView;
         @ExpectedScenarioState DrawingEditor mockEditor;
         @ExpectedScenarioState List<Figure> selectedFigures;
-
         @ProvidedScenarioState GroupFigure resultingGroup;
 
         public WhenUserActs the_group_action_is_executed() {
             GroupAction action = new GroupAction(mockEditor);
             resultingGroup = new GroupFigure();
-
             action.groupFigures(mockView, resultingGroup, selectedFigures);
             return this;
         }
@@ -79,24 +71,16 @@ public class GroupFeatureBDDTest extends ScenarioTest<
 
     public static class ThenCanvasState extends Stage<ThenCanvasState> {
         @ExpectedScenarioState GroupFigure resultingGroup;
-        @ExpectedScenarioState DrawingView mockView;
         @ExpectedScenarioState Drawing mockDrawing;
-        @ExpectedScenarioState List<Figure> selectedFigures;
 
         public ThenCanvasState a_single_group_is_created() {
-            assertThat(resultingGroup).
-                as("The resulting object must not be null and must be a GroupFigure")
-                .isNotNull()
-                .isInstanceOf(GroupFigure.class);
-
-            verify(mockDrawing).add(eq(0), eq(resultingGroup));
+            assertThat(resultingGroup).isNotNull().isInstanceOf(GroupFigure.class);
+            verify(mockDrawing).add(0, resultingGroup);
             return this;
         }
 
         public ThenCanvasState the_group_contains_exactly_two_items() {
-            assertThat(resultingGroup.getChildCount())
-                .as("The group must contain exactly the 2 selected items")
-                .isEqualTo(2);
+            assertThat(resultingGroup.getChildCount()).isEqualTo(2);
             return this;
         }
     }

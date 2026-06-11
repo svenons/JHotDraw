@@ -19,18 +19,15 @@ public class GroupFigure extends AbstractCompositeFigure {
             Rectangle2D.Double r = child.getBounds();
             Point2D.Double chopped = Geom.angleToPoint(r, Geom.pointToAngle(r, from));
             double distance = chopped.distanceSq(from); 
-            
             if (distance < minDistance) {
                 minDistance = distance;
                 closestPoint = chopped;
             }
         }
-
         if (closestPoint == null) {
             Rectangle2D.Double r = getBounds();
             return Geom.angleToPoint(r, Geom.pointToAngle(r, from));
         }
-
         return closestPoint;
     }
 
