@@ -56,19 +56,19 @@ public class SelectionTool extends AbstractTool {
     /**
      * The tracker encapsulates the current state of the SelectionTool.
      */
-    private Tool tracker;
+    private transient Tool tracker;
     /**
      * The tracker encapsulates the current state of the SelectionTool.
      */
-    private HandleTracker handleTracker;
+    private transient HandleTracker handleTracker;
     /**
      * The tracker encapsulates the current state of the SelectionTool.
      */
-    private SelectAreaTracker selectAreaTracker;
+    private transient SelectAreaTracker selectAreaTracker;
     /**
      * The tracker encapsulates the current state of the SelectionTool.
      */
-    private DragTracker dragTracker;
+    private transient DragTracker dragTracker;
 
     private class TrackerHandler extends ToolAdapter {
 
@@ -104,7 +104,7 @@ public class SelectionTool extends AbstractTool {
             fireBoundsInvalidated(e.getInvalidatedArea());
         }
     }
-    private TrackerHandler trackerHandler;
+    private transient TrackerHandler trackerHandler;
     /**
      * Constant for the name of the selectBehindEnabled property.
      */
