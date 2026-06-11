@@ -36,40 +36,21 @@ public class CombineAction extends GroupAction {
         labels.configureAction(this, ID);
     }
 
+
     @Override
-    protected boolean canGroup() {
-        boolean canCombine = getView().getSelectionCount() > 1;
-        if (canCombine) {
+    protected void updateEnabledState() {
+        super.updateEnabledState(); 
+        
+        if (isEnabled()) {
+            boolean canCombine = true;
             for (Figure f : getView().getSelectedFigures()) {
                 if (!(f instanceof ODGPathFigure)) {
                     canCombine = false;
                     break;
                 }
             }
+            setEnabled(canCombine);
         }
-        return canCombine;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public Collection<Figure> ungroupFigures(DrawingView view, CompositeFigure group) {
-        LinkedList<Figure> figures = new LinkedList<Figure>(group.getChildren());
-        view.clearSelection();
-        group.basicRemoveAllChildren();
-        LinkedList<Figure> paths = new LinkedList<Figure>();
-        for (Figure f : figures) {
-            ODGPathFigure path = new ODGPathFigure();
-            path.removeAllChildren();
-            for (Map.Entry<AttributeKey<?>, Object> entry : group.getAttributes().entrySet()) {
-                path.set((AttributeKey<Object>) entry.getKey(), entry.getValue());
-            }
-            path.add(f);
-            view.getDrawing().basicAdd(path);
-            paths.add(path);
-        }
-        view.getDrawing().remove(group);
-        view.addToSelection(paths);
-        return figures;
     }
 
     @Override
